@@ -12,7 +12,7 @@ object macros {
         case (a, b) => a.toLowerCase + b
       }
       defn match {
-        case q"..$_ trait $tname[..$tparams] extends $template" =>
+        case x @ q"..$_ trait $tname[..$tparams] extends $template" =>
           val op = tname.value + "Op"
           val ops = tname.value + "Ops"
           val opName = Type.Name(op)
@@ -36,21 +36,22 @@ object macros {
           val term = q"""
             import cats.InjectK
             import cats.free.Free
-            trait $opName[A]
             object $opTName {
               ..$opClasses
             }
-            final class $opsName[F[_]](implicit inj: InjectK[$opName, F]) {
-              import $opTName._
-              ..$opsMethods
-            }
-            object ${Term.Name(ops)} {
-              implicit def ${Term.Name(lower(ops))}[F[_]](implicit inj: InjectK[$opName, F]): $opsName[F] =
+            object ${Term.Name(tname.value)} {
+              private final class $opsName[F[_]](implicit inj: InjectK[$opName, F]) extends ${Ctor.Ref.Name(tname.value)}[F] {
+                import $opTName._
+                ..$opsMethods
+              }
+
+              implicit def ${Term.Name(lower(tname.value))}[F[_]](implicit inj: InjectK[$opName, F]): $tname[F] =
                 new ${Ctor.Ref.Name(opsName.value)}()
             }
            """
-          // println(term)
-          term
+
+          println(term)
+          Term.Block(x +: term.stats)
       }
     }
   }
