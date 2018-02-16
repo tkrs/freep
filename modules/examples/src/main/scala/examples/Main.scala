@@ -4,23 +4,18 @@ import cats.~>
 import cats.data.EitherK
 import cats.free.Free
 import cats.instances.option._
-import freep.macros.gen
+import freep.macros.genFree
 
 object metaFree {
 
-  trait TestAOp[A]
-  trait TestBOp[A]
-
-  type TestOp[A] = EitherK[TestAOp, TestBOp, A]
-
-  @gen
+  @genFree
   trait TestA[F[_]] {
     def plus(a: Int, b: Int): Free[F, Int]
     def minus(a: Int, b: Int): Free[F, Int]
     def zero(): Free[F, Int]
   }
 
-  @gen
+  @genFree
   trait TestB[F[_]] {
     def multi(a: Int, b: Int): Free[F, Int]
     def divide(a: Int, b: Int): Free[F, Int]
@@ -28,7 +23,9 @@ object metaFree {
 }
 
 object Main extends App {
-  import metaFree._ // , TestAOp._, TestBOp._
+  import metaFree._
+
+  type TestOp[A] = EitherK[TestAOp, TestBOp, A]
 
   def program(implicit A: TestA[TestOp], B: TestB[TestOp]): Free[TestOp, Int] =
     for {

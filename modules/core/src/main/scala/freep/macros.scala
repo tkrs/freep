@@ -6,15 +6,15 @@ import scala.meta._
 import scala.collection.immutable.Seq
 
 object macros {
-  class gen extends StaticAnnotation {
+  class genFree extends StaticAnnotation {
     inline def apply(defn: Any): Any = meta {
       def lower(s: String): String = s.splitAt(1) match {
         case (a, b) => a.toLowerCase + b
       }
       defn match {
         case x @ q"..$_ trait $tname[..$tparams] extends $template" =>
-          val op = tname.value + "Op"
-          val ops = tname.value + "Ops"
+          val op = s"${tname.value}Op"
+          val ops = s"${tname.value}Ops"
           val opName = Type.Name(op)
           val opsName = Type.Name(ops)
           val opClasses = template.stats.getOrElse(Seq.empty).map {
@@ -36,6 +36,7 @@ object macros {
           val term = q"""
             import cats.InjectK
             import cats.free.Free
+            trait $opName[A]
             object $opTName {
               ..$opClasses
             }
