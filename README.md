@@ -1,3 +1,3 @@
 # freep
 
-This is a project to learn my first scalameta.
+This is my first project to learn Scalameta.
